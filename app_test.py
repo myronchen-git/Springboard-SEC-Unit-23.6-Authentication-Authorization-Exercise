@@ -1,6 +1,8 @@
 from types import MappingProxyType
 from unittest import TestCase
 
+from flask import session
+
 from app import create_app
 from models import User, connect_db, db
 
@@ -166,3 +168,28 @@ class UserLoginTestCase(TestCase):
                 self.assertIn("<h1>Login</h1>", html)
                 self.assertIn("Username", html)
                 self.assertIn("Password", html)
+
+
+class UserLogoutTestCase(TestCase):
+    """Tests logging out users."""
+
+    def setUp(self):
+        db.session.query(User).delete()
+
+    def test_user_logout(self):
+        # Arrange
+        with app.test_client() as client:
+            resp = client.post("/register", data=dict(data1))
+
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(resp.location, "/secret")
+            self.assertIn("username", session)
+
+            url = "/logout"
+
+        # Act
+            resp = client.post(url)
+
+        # Assert
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.location, "/")

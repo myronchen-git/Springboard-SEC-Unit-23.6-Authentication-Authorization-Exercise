@@ -77,6 +77,14 @@ def create_app(db_name, testing=False):
 
         return render_template("login_user.html", form=form)
 
+    @app.route("/logout", methods=["POST"])
+    def logout_user():
+        """Logs out the current user."""
+
+        session.pop("username")
+        flash("Logged out.")
+        return redirect("/")
+
     @app.route("/secret")
     def secret():
         if "username" not in session:
