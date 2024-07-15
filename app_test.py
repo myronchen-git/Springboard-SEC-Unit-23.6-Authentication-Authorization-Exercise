@@ -145,7 +145,7 @@ class UserLoginTestCase(TestCase):
 
         # Assert
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.location, "/secret")
+        self.assertEqual(resp.location, f"/users/{data1["username"]}")
 
     def test_user_login_incorrect_username(self):
         """Tests inputting in incorrect info for log in."""
@@ -182,7 +182,7 @@ class UserLogoutTestCase(TestCase):
             resp = client.post("/register", data=dict(data1))
 
             self.assertEqual(resp.status_code, 302)
-            self.assertEqual(resp.location, "/secret")
+            self.assertEqual(resp.location, f"/users/{data1["username"]}")
             self.assertIn("username", session)
 
             url = "/logout"

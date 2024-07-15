@@ -39,7 +39,7 @@ def create_app(db_name, testing=False):
         """Displays the form to register a user, and registers a user."""
 
         if "username" in session:
-            return redirect("/secret")
+            return redirect(f"/users/{session["username"]}")
 
         form = registerUserForm()
 
@@ -49,7 +49,7 @@ def create_app(db_name, testing=False):
                 session["username"] = user.username
 
                 flash("Successfully registered.", "info")
-                return redirect("/secret")
+                return redirect(f"/users/{user.username}")
             except (KeyError, ValueError) as e:
                 flash(f"Invalid input(s) on registration form.  "
                       f"{str(e)}", "error")
@@ -61,7 +61,7 @@ def create_app(db_name, testing=False):
         """Displays login, and logs in user."""
 
         if "username" in session:
-            return redirect("/secret")
+            return redirect(f"/users/{session["username"]}")
 
         form = loginUserForm()
 
@@ -70,7 +70,7 @@ def create_app(db_name, testing=False):
 
             if user:
                 session["username"] = user.username
-                return redirect("/secret")
+                return redirect(f"/users/{user.username}")
             else:
                 # form.username.errors = ["Invalid username or password."]
                 flash("Invalid username or password.")
@@ -85,11 +85,14 @@ def create_app(db_name, testing=False):
         flash("Logged out.")
         return redirect("/")
 
-    @app.route("/secret")
-    def secret():
+    @app.route("/users/<username>")
+    def user_profile(username):
         if "username" not in session:
             raise Unauthorized()
-        return render_template("secret.html")
+
+        user = db.get_or_404(User, username)
+
+        return render_template("user_profile.html", user=user)
 
     return app
 
