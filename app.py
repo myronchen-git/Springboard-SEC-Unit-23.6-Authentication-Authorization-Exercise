@@ -1,6 +1,7 @@
 """Flask app for feedback."""
 
-from flask import Flask, flash, redirect, render_template
+from flask import Flask, flash, redirect, render_template, session
+from werkzeug.exceptions import Unauthorized
 
 from forms import loginUserForm, registerUserForm
 from models import User, connect_db, db
@@ -37,11 +38,15 @@ def create_app(db_name, testing=False):
     def register_user():
         """Displays the form to register a user, and registers a user."""
 
+        if "username" in session:
+            return redirect("/secret")
+
         form = registerUserForm()
 
         if form.validate_on_submit():
             try:
-                User.register(form.data.items())
+                user = User.register(form.data.items())
+                session["username"] = user.username
 
                 flash("Successfully registered.", "info")
                 return redirect("/secret")
@@ -51,13 +56,12 @@ def create_app(db_name, testing=False):
 
         return render_template("register_user.html", form=form)
 
-    @app.route("/secret")
-    def secret():
-        return render_template("secret.html")
-
     @app.route("/login", methods=["GET", "POST"])
     def login_user():
         """Displays login, and logs in user."""
+
+        if "username" in session:
+            return redirect("/secret")
 
         form = loginUserForm()
 
@@ -65,12 +69,19 @@ def create_app(db_name, testing=False):
             user = User.authenticate(form.username.data, form.password.data)
 
             if user:
+                session["username"] = user.username
                 return redirect("/secret")
             else:
                 # form.username.errors = ["Invalid username or password."]
                 flash("Invalid username or password.")
 
         return render_template("login_user.html", form=form)
+
+    @app.route("/secret")
+    def secret():
+        if "username" not in session:
+            raise Unauthorized()
+        return render_template("secret.html")
 
     return app
 

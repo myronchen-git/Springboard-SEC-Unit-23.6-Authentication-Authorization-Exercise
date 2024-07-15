@@ -88,6 +88,9 @@ class UserRegistrationTestCase(TestCase):
                 with app.test_client() as client:
                     client.post(url, data=dict(data1), follow_redirects=True)
 
+                    with client.session_transaction() as change_session:
+                        change_session.clear()
+
         # Act
                     resp = client.post(url, data=data2, follow_redirects=True)
                     html = resp.get_data(as_text=True)
