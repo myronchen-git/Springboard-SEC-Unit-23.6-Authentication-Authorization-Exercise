@@ -66,3 +66,17 @@ class User(db.Model):
         except IntegrityError:
             db.session.rollback()
             raise ValueError("Duplicate username or email.")
+
+    @classmethod
+    def authenticate(cls, username, password):
+        """
+        Verifies that username and password are correct.
+        Returns User object if valid, else returns False.
+        """
+
+        user = db.session.get(User, username)
+
+        if user and bcrypt.check_password_hash(user.password, password):
+            return user
+        else:
+            return False

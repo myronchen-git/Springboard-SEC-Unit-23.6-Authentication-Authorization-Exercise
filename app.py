@@ -2,7 +2,7 @@
 
 from flask import Flask, flash, redirect, render_template
 
-from forms import registerUserForm
+from forms import loginUserForm, registerUserForm
 from models import User, connect_db, db
 from secret_keys import APP_SECRET_KEY
 
@@ -54,6 +54,23 @@ def create_app(db_name, testing=False):
     @app.route("/secret")
     def secret():
         return render_template("secret.html")
+
+    @app.route("/login", methods=["GET", "POST"])
+    def login_user():
+        """Displays login, and logs in user."""
+
+        form = loginUserForm()
+
+        if form.validate_on_submit():
+            user = User.authenticate(form.username.data, form.password.data)
+
+            if user:
+                return redirect("/secret")
+            else:
+                # form.username.errors = ["Invalid username or password."]
+                flash("Invalid username or password.")
+
+        return render_template("login_user.html", form=form)
 
     return app
 
