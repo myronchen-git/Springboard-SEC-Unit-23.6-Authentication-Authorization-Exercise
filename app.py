@@ -1,8 +1,9 @@
 """Flask app for feedback."""
 
-from flask import Flask
+from flask import Flask, flash, redirect, render_template
 
-from models import connect_db
+from forms import registerUserForm
+from models import User, connect_db, db
 from secret_keys import APP_SECRET_KEY
 
 # ==================================================
@@ -25,6 +26,34 @@ def create_app(db_name, testing=False):
         app.config["TESTING"] = True
 
     # --------------------------------------------------
+
+    @app.route("/")
+    def display_root():
+        """Redirects to /register."""
+
+        return redirect("/register")
+
+    @app.route("/register", methods=["GET", "POST"])
+    def register_user():
+        """Displays the form to register a user, and registers a user."""
+
+        form = registerUserForm()
+
+        if form.validate_on_submit():
+            try:
+                User.register(form.data.items())
+
+                flash("Successfully registered.", "info")
+                return redirect("/secret")
+            except (KeyError, ValueError) as e:
+                flash(f"Invalid input(s) on registration form.  "
+                      f"{str(e)}", "error")
+
+        return render_template("register_user.html", form=form)
+
+    @app.route("/secret")
+    def secret():
+        return render_template("secret.html")
 
     return app
 
