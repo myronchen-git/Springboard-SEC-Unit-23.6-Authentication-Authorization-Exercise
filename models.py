@@ -48,7 +48,10 @@ class User(db.Model):
 
     @classmethod
     def register(cls, form_data_items):
-        """Saves user and info into database."""
+        """
+        Saves user and info into database.
+        Returns User object if successful, else raises an error.
+        """
 
         form_data = {k: v for k, v in form_data_items
                      if k in cls.properties and v}
@@ -63,6 +66,7 @@ class User(db.Model):
         db.session.add(user)
         try:
             db.session.commit()
+            return user
         except IntegrityError:
             db.session.rollback()
             raise ValueError("Duplicate username or email.")
