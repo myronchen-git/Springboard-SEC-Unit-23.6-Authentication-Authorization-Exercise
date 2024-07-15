@@ -1,8 +1,15 @@
 """Models for feedback app."""
 
+from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
+
+# ==================================================
 
 db = SQLAlchemy()
+bcrypt = Bcrypt()
+
+# --------------------------------------------------
 
 
 def connect_db(app):
@@ -25,6 +32,8 @@ class User(db.Model):
     first_name = db.Column(db.String(30), nullable=False)
     last_name = db.Column(db.String(30), nullable=False)
 
+    properties = ("username", "password", "email", "first_name", "last_name")
+
     def __repr__(self):
         """Show info about user."""
 
@@ -36,3 +45,24 @@ class User(db.Model):
             f"first_name='{self.first_name}', "
             f"last_name='{self.last_name}')>"
         )
+
+    @classmethod
+    def register(cls, form_data_items):
+        """Saves user and info into database."""
+
+        form_data = {k: v for k, v in form_data_items
+                     if k in cls.properties and v}
+
+        if len(form_data) != len(cls.properties):
+            raise KeyError("Missing input(s) for user registration.")
+
+        form_data["password"] = bcrypt.generate_password_hash(
+            form_data["password"]).decode("utf8")
+        user = cls(**form_data)
+
+        db.session.add(user)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            raise ValueError("Duplicate username or email.")
