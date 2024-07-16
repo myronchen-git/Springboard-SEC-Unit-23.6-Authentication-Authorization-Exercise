@@ -4,10 +4,32 @@
 <!---->
 {% block content %}
 <h2>{{ user.username }}</h2>
-<div>
+<section class="user-info">
+  <h3>Info</h3>
   <p>Email: {{ user.email }}</p>
   <p>First Name: {{ user.first_name }}</p>
   <p>Last Name: {{ user.last_name }}</p>
-</div>
+</section>
+<section class="user-actions">
+  <a href="/users/{{ user.username }}/feedback/add">Add feedback</a>
+  <form action="/users/{{ user.username }}/delete">
+    <button type="submit">X</button>
+  </form>
+</section>
+<section class="user-feedbacks">
+  <h3>Feedbacks</h3>
+  <ul>
+    {% for feedback in feedbacks %}
+    <li data-feedback-id="{{ feedback.id }}">
+      <h4>{{ feedback.title }}</h4>
+      <p>{{ feedback.content }}</p>
+      <a href="/feedback/{{ feedback.id }}/update">Edit</a>
+      <form action="/feedback/{{ feedback.id }}/delete">
+        <button type="submit">X</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
 <!---->
 {% endblock %}

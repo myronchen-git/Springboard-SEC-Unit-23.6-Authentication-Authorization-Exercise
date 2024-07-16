@@ -193,3 +193,65 @@ class UserLogoutTestCase(TestCase):
         # Assert
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(resp.location, "/")
+
+
+class UserProfileTestCase(TestCase):
+    """Tests user profile."""
+
+    def setUp(self):
+        db.session.query(User).delete()
+
+        with app.test_client() as client:
+            client.post("/register", data=dict(data1))
+
+    def test_user_profile_page(self):
+        """Tests displaying the user profile webpage."""
+
+        # Arrange
+        url = f"/users/{data1["username"]}"
+
+        with app.test_client() as client:
+            with client.session_transaction() as change_session:
+                change_session["username"] = data1["username"]
+
+        # Act
+            resp = client.get(url)
+            html = resp.get_data(as_text=True)
+
+        # Assert
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(f"<h2>{data1["username"]}</h2>", html)
+        self.assertIn(data1["email"], html)
+        self.assertIn(data1["first_name"], html)
+        self.assertIn(data1["last_name"], html)
+        self.assertIn(f'href="/users/{data1["username"]}/feedback/add"', html)
+        self.assertIn(f'"/users/{data1["username"]}/delete"', html)
+
+    def test_user_profile_not_logged_in(self):
+        """Tests not displaying the profile webpage if not logged in."""
+
+        # Arrange
+        url = f"/users/{data1["username"]}"
+
+        # Act
+        with app.test_client() as client:
+            resp = client.get(url)
+
+        # Assert
+        self.assertEqual(resp.status_code, 401)
+
+    def test_user_profile_with_different_logged_in_user(self):
+        """If logged in, users should not be able to see another user's profile."""
+
+        # Arrange
+        url = f"/users/{data1["username"]}"
+
+        with app.test_client() as client:
+            with client.session_transaction() as change_session:
+                change_session["username"] = "user2"
+
+        # Act
+            resp = client.get(url)
+
+        # Assert
+        self.assertEqual(resp.status_code, 401)

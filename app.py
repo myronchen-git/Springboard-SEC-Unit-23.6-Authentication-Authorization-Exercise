@@ -87,12 +87,14 @@ def create_app(db_name, testing=False):
 
     @app.route("/users/<username>")
     def user_profile(username):
-        if "username" not in session:
+        """Show user profile."""
+
+        if username != session.get("username", None):
             raise Unauthorized()
 
         user = db.get_or_404(User, username)
 
-        return render_template("user_profile.html", user=user)
+        return render_template("user_profile.html", user=user, feedbacks=user.feedbacks)
 
     return app
 
