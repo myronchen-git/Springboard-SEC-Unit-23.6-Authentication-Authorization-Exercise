@@ -257,6 +257,59 @@ class UserProfileTestCase(TestCase):
         self.assertEqual(resp.status_code, 401)
 
 
+class DeleteUserTestCase(TestCase):
+    """Tests deleting user."""
+
+    def setUp(self):
+        db.session.query(User).delete()
+
+        with app.test_client() as client:
+            client.post("/register", data=dict(data1))
+
+    def tearDown(self):
+        db.session.rollback()
+
+    def test_delete_user(self):
+        """Tests deleting a user."""
+
+        # Arrange
+        url = f"/users/{data1["username"]}/delete"
+        logged_in_user = data1["username"]
+
+        with app.test_client() as client:
+            with client.session_transaction() as change_session:
+                change_session["username"] = logged_in_user
+
+        # Act
+            resp = client.post(url, follow_redirects=True)
+
+        # Assert
+        self.assertEqual(resp.status_code, 200)
+
+        user_count = db.session.query(User).count()
+        self.assertEqual(user_count, 0)
+
+    def test_delete_user_(self):
+        """Tests deleting a user when it is not the current user."""
+
+        # Arrange
+        url = f"/users/{data1["username"]}/delete"
+        logged_in_user = "user99"
+
+        with app.test_client() as client:
+            with client.session_transaction() as change_session:
+                change_session["username"] = logged_in_user
+
+        # Act
+            resp = client.post(url, follow_redirects=True)
+
+        # Assert
+        self.assertEqual(resp.status_code, 401)
+
+        user_count = db.session.query(User).count()
+        self.assertEqual(user_count, 1)
+
+
 class AddFeedbackTestCase(TestCase):
     """Tests adding feedback."""
 

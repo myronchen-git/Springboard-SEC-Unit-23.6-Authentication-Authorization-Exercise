@@ -96,6 +96,22 @@ def create_app(db_name, testing=False):
 
         return render_template("user_profile.html", user=user, feedbacks=user.feedbacks)
 
+    @app.route("/users/<username>/delete", methods=["POST"])
+    def delete_user(username):
+        """Deletes a user."""
+
+        if username != session.get("username", None):
+            raise Unauthorized()
+
+        # Double check that user exists
+        db.get_or_404(User, username)
+
+        User.delete(username)
+        session.pop("username")
+
+        flash("Delete request sent.")
+        return redirect("/")
+
     @app.route("/users/<username>/feedback/add", methods=["GET", "POST"])
     def add_feedback(username):
         """Shows the form to add a feedback."""
