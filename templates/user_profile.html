@@ -12,7 +12,7 @@
 </section>
 <section class="user-actions">
   <a href="/users/{{ user.username }}/feedback/add">Add feedback</a>
-  <form action="/users/{{ user.username }}/delete">
+  <form action="/users/{{ user.username }}/delete" method="post">
     <button type="submit">X</button>
   </form>
 </section>
@@ -24,7 +24,7 @@
       <h4>{{ feedback.title }}</h4>
       <p>{{ feedback.content }}</p>
       <a href="/feedback/{{ feedback.id }}/update">Edit</a>
-      <form action="/feedback/{{ feedback.id }}/delete">
+      <form action="/feedback/{{ feedback.id }}/delete" method="post">
         <button type="submit">X</button>
       </form>
     </li>
