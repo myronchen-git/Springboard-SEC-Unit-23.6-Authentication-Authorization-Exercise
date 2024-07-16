@@ -4,7 +4,7 @@ from unittest import TestCase
 from flask import session
 
 from app import create_app
-from models import User, connect_db, db
+from models import Feedback, User, connect_db, db
 
 # ==================================================
 
@@ -255,3 +255,69 @@ class UserProfileTestCase(TestCase):
 
         # Assert
         self.assertEqual(resp.status_code, 401)
+
+
+class AddFeedbackTestCase(TestCase):
+    """Tests adding feedback."""
+
+    @classmethod
+    def setUpClass(cls):
+        db.session.query(User).delete()
+
+        with app.test_client() as client:
+            client.post("/register", data=dict(data1))
+
+    def setUp(self):
+        db.session.query(Feedback).delete()
+
+    def tearDown(self):
+        db.session.rollback()
+
+    def test_add_feedback_form(self):
+        """Tests displaying the form to add a feedback."""
+
+        # Arrange
+        url = f"/users/{data1["username"]}/feedback/add"
+
+        with app.test_client() as client:
+            with client.session_transaction() as change_session:
+                change_session["username"] = data1["username"]
+
+        # Act
+            resp = client.get(url)
+            html = resp.get_data(as_text=True)
+
+        # Assert
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("<h1>Feedback</h1>", html)
+        self.assertIn("Title", html)
+        self.assertIn("Content", html)
+        self.assertIn("<input", html)
+
+    def test_add_feedback(self):
+        """Tests adding a feedback."""
+
+        # Arrange
+        url = f"/users/{data1["username"]}/feedback/add"
+        new_feedback_data = MappingProxyType(
+            {"title": "feedback1", "content": "abcd"})
+
+        with app.test_client() as client:
+            with client.session_transaction() as change_session:
+                change_session["username"] = data1["username"]
+
+        # Act
+            resp = client.post(url, data=new_feedback_data)
+
+        # Assert
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.location, f"/users/{data1["username"]}")
+
+        feedback_count = db.session.query(Feedback.id).count()
+        self.assertEqual(feedback_count, 1)
+
+        feedback = db.session.query(Feedback).filter_by(
+            title=new_feedback_data["title"]).one()
+        self.assertEqual(feedback.content, new_feedback_data["content"])
+        self.assertEqual(feedback.username, data1["username"])
+        self.assertIsInstance(feedback.id, int)

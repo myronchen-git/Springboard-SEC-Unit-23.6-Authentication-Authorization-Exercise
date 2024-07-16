@@ -101,3 +101,16 @@ class Feedback(db.Model):
 
     def __repr__(self) -> str:
         return super().__repr__()
+
+    @classmethod
+    def add(cls, title, content, username):
+        """
+        Adds a feedback to the database.
+        Returns Feedback object.
+        """
+
+        feedback = cls(title=title, content=content, username=username)
+        db.session.add(feedback)
+        db.session.commit()
+
+        return feedback

@@ -3,8 +3,8 @@
 from flask import Flask, flash, redirect, render_template, session
 from werkzeug.exceptions import Unauthorized
 
-from forms import loginUserForm, registerUserForm
-from models import User, connect_db, db
+from forms import FeedbackForm, LoginUserForm, RegisterUserForm
+from models import Feedback, User, connect_db, db
 from secret_keys import APP_SECRET_KEY
 
 # ==================================================
@@ -41,7 +41,7 @@ def create_app(db_name, testing=False):
         if "username" in session:
             return redirect(f"/users/{session["username"]}")
 
-        form = registerUserForm()
+        form = RegisterUserForm()
 
         if form.validate_on_submit():
             try:
@@ -63,7 +63,7 @@ def create_app(db_name, testing=False):
         if "username" in session:
             return redirect(f"/users/{session["username"]}")
 
-        form = loginUserForm()
+        form = LoginUserForm()
 
         if form.validate_on_submit():
             user = User.authenticate(form.username.data, form.password.data)
@@ -95,6 +95,25 @@ def create_app(db_name, testing=False):
         user = db.get_or_404(User, username)
 
         return render_template("user_profile.html", user=user, feedbacks=user.feedbacks)
+
+    @app.route("/users/<username>/feedback/add", methods=["GET", "POST"])
+    def add_feedback(username):
+        """Shows the form to add a feedback."""
+
+        if username != session.get("username", None):
+            raise Unauthorized()
+
+        # Double check that user exists
+        db.get_or_404(User, username)
+
+        form = FeedbackForm()
+
+        if form.validate_on_submit():
+            Feedback.add(form.title.data, form.content.data, username)
+            flash("Successfully added feedback.")
+            return redirect(f"/users/{username}")
+        else:
+            return render_template("add_feedback.html", form=form)
 
     return app
 

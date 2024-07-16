@@ -5,7 +5,7 @@ from wtforms.validators import EqualTo, InputRequired, Length
 # ==================================================
 
 
-class registerUserForm(FlaskForm):
+class RegisterUserForm(FlaskForm):
     """Form to register a user."""
 
     username = StringField("Username", validators=[
@@ -32,7 +32,7 @@ class registerUserForm(FlaskForm):
         Length(2, 30, "Last name needs to be 2-30 characters long, inclusive.")])
 
 
-class loginUserForm(FlaskForm):
+class LoginUserForm(FlaskForm):
     """Form to log in a user."""
 
     username = StringField("Username", validators=[
@@ -41,3 +41,14 @@ class loginUserForm(FlaskForm):
 
     password = PasswordField("Password", validators=[
         InputRequired(message="Password is required.")])
+
+
+class FeedbackForm(FlaskForm):
+    """Form for adding a feedback."""
+
+    title = StringField("Title", validators=[
+        InputRequired(message="Title is required."),
+        Length(3, 100, "Username needs to be 3-100 characters long, inclusive.")])
+
+    content = StringField("Content", validators=[
+                          InputRequired(message="Content is required.")])
