@@ -109,6 +109,8 @@ class UserLoginTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        db.session.query(User).delete()
+
         with app.test_client() as client:
             client.post("/register", data=dict(data1))
 
