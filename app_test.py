@@ -291,7 +291,7 @@ class DeleteUserTestCase(TestCase):
         user_count = db.session.query(User).count()
         self.assertEqual(user_count, 0)
 
-    def test_delete_user_(self):
+    def test_delete_user_when_not_same_user(self):
         """Tests deleting a user when it is not the current user."""
 
         # Arrange
