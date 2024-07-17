@@ -149,6 +149,21 @@ def create_app(db_name, testing=False):
         else:
             return render_template("update_feedback.html", form=form)
 
+    @app.route("/feedback/<int:feedback_id>/delete", methods=["POST"])
+    def delete_feedback(feedback_id):
+        """Deletes a feedback."""
+
+        feedback = db.get_or_404(Feedback, feedback_id)
+        username = feedback.username
+
+        if username != session.get("username", None):
+            raise Unauthorized()
+
+        feedback.delete()
+
+        flash("Delete request sent.")
+        return redirect(f"/users/{username}")
+
     return app
 
 # ==================================================

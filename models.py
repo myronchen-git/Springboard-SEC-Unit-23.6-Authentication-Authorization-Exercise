@@ -133,3 +133,9 @@ class Feedback(db.Model):
         db.session.commit()
 
         return self
+
+    def delete(self):
+        """Deletes a feedback. """
+
+        db.session.delete(self)
+        db.session.commit()
