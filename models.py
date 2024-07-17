@@ -32,7 +32,7 @@ class User(db.Model):
     first_name = db.Column(db.String(30), nullable=False)
     last_name = db.Column(db.String(30), nullable=False)
 
-    feedbacks = db.relationship("Feedback")
+    feedbacks = db.relationship("Feedback", cascade="all, delete-orphan")
 
     properties = ("username", "password", "email", "first_name", "last_name")
 
