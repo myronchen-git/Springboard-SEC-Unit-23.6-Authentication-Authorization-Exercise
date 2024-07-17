@@ -87,11 +87,10 @@ class User(db.Model):
         else:
             return False
 
-    @classmethod
-    def delete(cls, username):
-        """Deletes a user and their feedback from the database."""
+    def delete(self):
+        """Deletes a user from the database."""
 
-        db.session.query(User).filter_by(username=username).delete()
+        db.session.delete(self)
         db.session.commit()
 
 

@@ -103,10 +103,8 @@ def create_app(db_name, testing=False):
         if username != session.get("username", None):
             raise Unauthorized()
 
-        # Double check that user exists
-        db.get_or_404(User, username)
-
-        User.delete(username)
+        user = db.get_or_404(User, username)
+        user.delete()
         session.pop("username")
 
         flash("Delete request sent.")
