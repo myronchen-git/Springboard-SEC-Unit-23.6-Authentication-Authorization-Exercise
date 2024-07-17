@@ -89,8 +89,7 @@ def create_app(db_name, testing=False):
     def user_profile(username):
         """Show user profile."""
 
-        if username != session.get("username", None):
-            raise Unauthorized()
+        __authorize_session_user_to_access(username)
 
         user = db.get_or_404(User, username)
 
@@ -100,12 +99,12 @@ def create_app(db_name, testing=False):
     def delete_user(username):
         """Deletes a user."""
 
-        if username != session.get("username", None):
-            raise Unauthorized()
+        session_user = __authorize_session_user_to_access(username)
 
         user = db.get_or_404(User, username)
         user.delete()
-        session.pop("username")
+        if not session_user.is_admin:
+            session.pop("username")
 
         flash("Delete request sent.")
         return redirect("/")
@@ -114,8 +113,7 @@ def create_app(db_name, testing=False):
     def add_feedback(username):
         """Shows the form to add a feedback."""
 
-        if username != session.get("username", None):
-            raise Unauthorized()
+        __authorize_session_user_to_access(username)
 
         # Double check that user exists
         db.get_or_404(User, username)
@@ -134,16 +132,16 @@ def create_app(db_name, testing=False):
         """Updates/edits a feedback."""
 
         feedback = db.get_or_404(Feedback, feedback_id)
+        username = feedback.username
 
-        if feedback.username != session.get("username", None):
-            raise Unauthorized()
+        __authorize_session_user_to_access(username)
 
         form = FeedbackForm(obj=feedback)
 
         if form.validate_on_submit():
             feedback.update(form.title.data, form.content.data)
             flash("Successfully updated feedback.")
-            return redirect(f"/users/{feedback.username}")
+            return redirect(f"/users/{username}")
         else:
             return render_template("update_feedback.html", form=form)
 
@@ -154,13 +152,27 @@ def create_app(db_name, testing=False):
         feedback = db.get_or_404(Feedback, feedback_id)
         username = feedback.username
 
-        if username != session.get("username", None):
-            raise Unauthorized()
+        __authorize_session_user_to_access(username)
 
         feedback.delete()
 
         flash("Delete request sent.")
         return redirect(f"/users/{username}")
+
+    def __authorize_session_user_to_access(username):
+        """
+        Determines if the user in the current session is authorized.
+        Raises Unauthorized exception if not authorized, else return session's user's User object.
+        """
+
+        session_username = session.get("username", None)
+        session_user = db.session.get(
+            User, session_username) if session_username else None
+
+        if not session_user or username != session_username and not session_user.is_admin:
+            raise Unauthorized()
+
+        return session_user
 
     return app
 
