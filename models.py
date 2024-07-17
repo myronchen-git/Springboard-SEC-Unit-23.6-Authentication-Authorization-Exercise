@@ -121,3 +121,15 @@ class Feedback(db.Model):
         db.session.commit()
 
         return feedback
+
+    def update(self, title, content):
+        """
+        Updates/edits a feedback.
+        Returns updated Feedback object.
+        """
+
+        self.title = title
+        self.content = content
+        db.session.commit()
+
+        return self
